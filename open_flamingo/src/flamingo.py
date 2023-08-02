@@ -301,7 +301,7 @@ class Flamingo(nn.Module):
         apply_with_stopping_condition(
             module=self.lang_encoder,
             apply_fn=lambda m: m.to(device_id),
-            apply_condition=lambda m: len(list(m.children())) == 0,
+            apply_condition=lambda m: not list(m.children()),
             stopping_condition=lambda m: isinstance(m, FSDP),
         )
 

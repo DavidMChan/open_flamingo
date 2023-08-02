@@ -60,8 +60,7 @@ class RICES:
                 image_features /= image_features.norm(dim=-1, keepdim=True)
                 features.append(image_features.detach())
 
-        features = torch.cat(features)
-        return features
+        return torch.cat(features)
 
     def find(self, batch, num_examples):
         """

@@ -177,7 +177,7 @@ def preprocess_interleaved(
         images.append(image)
         sentence_ixs.append(sim_ix)
 
-    if len(images) == 0:
+    if not images:
         raise ValueError("No images in sample")
 
     # preprocess and pad images
@@ -263,11 +263,11 @@ def get_mmc4_dataset(args, image_processor, tokenizer, epoch=0, floor=False):
     num_samples = None
     if not num_samples:
         num_samples = args.train_num_samples_mmc4
-        if not num_samples:
-            raise RuntimeError(
-                "Currently, number of dataset samples must be specified for training dataset. "
-                "Please specify via `--train-num-samples` if no dataset length info present."
-            )
+    if not num_samples:
+        raise RuntimeError(
+            "Currently, number of dataset samples must be specified for training dataset. "
+            "Please specify via `--train-num-samples` if no dataset length info present."
+        )
 
     # create a shared epoch store to sync epoch to dataloader worker proc
     shared_epoch = SharedEpoch(epoch=epoch)
@@ -364,11 +364,11 @@ def get_laion_dataset(args, image_processor, tokenizer, epoch=0, floor=False):
     num_samples = None
     if not num_samples:
         num_samples = args.train_num_samples_laion
-        if not num_samples:
-            raise RuntimeError(
-                "Currently, number of dataset samples must be specified for training dataset. "
-                "Please specify via `--train-num-samples` if no dataset length info present."
-            )
+    if not num_samples:
+        raise RuntimeError(
+            "Currently, number of dataset samples must be specified for training dataset. "
+            "Please specify via `--train-num-samples` if no dataset length info present."
+        )
 
     # create a shared epoch store to sync epoch to dataloader worker proc
     shared_epoch = SharedEpoch(epoch=epoch)

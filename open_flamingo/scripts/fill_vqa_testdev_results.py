@@ -43,16 +43,13 @@ def fill_vizwiz_test_json(
         vqa_test_json = json.load(f)
     vqa_test_json = vqa_test_json["questions"]
 
-    # if the question_id is not in the set, add it to the copy of the input json with an empty string as the answer
-    output_json = []
-    for q in vqa_test_json:
-        output_json.append(
-            {
-                "image": q["image_id"],
-                "answer": question_id_to_answer.get(q["question_id"], ""),
-            }
-        )
-
+    output_json = [
+        {
+            "image": q["image_id"],
+            "answer": question_id_to_answer.get(q["question_id"], ""),
+        }
+        for q in vqa_test_json
+    ]
     # write the json to the output path
     with open(output_path, "w") as f:
         json.dump(output_json, f)
@@ -66,10 +63,7 @@ def fill_vqav2_test_json(
     # read the input json and build a set with all question_ids
     with open(input_path, "r") as f:
         input_json = json.load(f)
-    question_ids = set()
-    for q in input_json:
-        question_ids.add(q["question_id"])
-
+    question_ids = {q["question_id"] for q in input_json}
     # make a copy of the input json
     output_json = []
     for q in input_json:
@@ -88,15 +82,14 @@ def fill_vqav2_test_json(
     vqa_test_json = vqa_test_json["questions"]
 
     # if the question_id is not in the set, add it to the copy of the input json with an empty string as the answer
-    for q in vqa_test_json:
-        if q["question_id"] not in question_ids:
-            output_json.append(
-                {
-                    "question_id": q["question_id"],
-                    "answer": "",
-                }
-            )
-
+    output_json.extend(
+        {
+            "question_id": q["question_id"],
+            "answer": "",
+        }
+        for q in vqa_test_json
+        if q["question_id"] not in question_ids
+    )
     # write the json to the output path
     with open(output_path, "w") as f:
         json.dump(output_json, f)

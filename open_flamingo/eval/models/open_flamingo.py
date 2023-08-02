@@ -250,8 +250,7 @@ class EvalModel(BaseEvalModel):
             overall_probs.append(class_prob)  # (B, 1)
 
         self.uncache_media()
-        overall_probs = torch.vstack(overall_probs).T.cpu()  # shape (B, num_classes)
-        return overall_probs
+        return torch.vstack(overall_probs).T.cpu()
 
     def __call__(
         self,

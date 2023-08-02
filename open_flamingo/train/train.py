@@ -284,7 +284,7 @@ def main():
         # if args do not specify a checkpoint to resume from, check if checkpoints exist for this run
         # and automatically resume from the latest checkpoint
         checkpoint_list = glob.glob(f"{args.run_name}/checkpoint_*.pt")
-        if len(checkpoint_list) == 0:
+        if not checkpoint_list:
             print(f"Found no checkpoints for run {args.run_name}.")
         else:
             args.resume_from_checkpoint = sorted(
