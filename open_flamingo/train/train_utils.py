@@ -34,7 +34,7 @@ def get_mp_policy_dtype(precision: str):
 def get_autocast(precision, cache_enabled=True):
     if precision == "amp":
         return torch.cuda.amp.autocast(cache_enabled=cache_enabled)
-    elif precision == "amp_bfloat16" or precision == "amp_bf16":
+    elif precision in ["amp_bfloat16", "amp_bf16"]:
         # amp_bfloat16 is more stable than amp float16 for clip training
         return lambda: torch.cuda.amp.autocast(
             dtype=torch.bfloat16, cache_enabled=cache_enabled
@@ -354,7 +354,7 @@ def save_checkpoint(model, optimizer, lr_scheduler, epoch, args):
         optim_state = optimizer.state_dict()
 
     if args.rank == 0:
-        if not (args.fsdp and not args.fsdp_use_orig_params):
+        if not args.fsdp or args.fsdp_use_orig_params:
             model_state = filter_state_dict_to_trainable(model, model_state)
 
         if not os.path.exists(args.run_name):
@@ -372,6 +372,6 @@ def save_checkpoint(model, optimizer, lr_scheduler, epoch, args):
         if args.report_to_wandb and args.save_checkpoints_to_wandb:
             wandb.save(f"{args.run_name}/checkpoint_{epoch}.pt")
 
-        if args.delete_previous_checkpoint:
-            if epoch > 0:
+        if epoch > 0:
+            if args.delete_previous_checkpoint:
                 os.remove(f"{args.run_name}/checkpoint_{epoch-1}.pt")

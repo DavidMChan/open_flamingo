@@ -35,7 +35,7 @@ class VQA:
         self.qa = {}
         self.qqa = {}
         self.imgToQA = {}
-        if not annotation_file == None and not question_file == None:
+        if annotation_file is not None and question_file is not None:
             print("loading VQA annotations and questions into memory...")
             time_t = datetime.datetime.utcnow()
             dataset = json.load(open(annotation_file, "r"))
@@ -69,7 +69,7 @@ class VQA:
         :return:
         """
         for key, value in self.dataset["info"].items():
-            print("%s: %s" % (key, value))
+            print(f"{key}: {value}")
 
     def getQuesIds(self, imgIds=[], quesTypes=[], ansTypes=[]):
         """
@@ -86,9 +86,13 @@ class VQA:
         if len(imgIds) == len(quesTypes) == len(ansTypes) == 0:
             anns = self.dataset["annotations"]
         else:
-            if not len(imgIds) == 0:
+            if len(imgIds) != 0:
                 anns = sum(
-                    [self.imgToQA[imgId] for imgId in imgIds if imgId in self.imgToQA],
+                    (
+                        self.imgToQA[imgId]
+                        for imgId in imgIds
+                        if imgId in self.imgToQA
+                    ),
                     [],
                 )
             else:
@@ -103,8 +107,7 @@ class VQA:
                 if len(ansTypes) == 0
                 else [ann for ann in anns if ann["answer_type"] in ansTypes]
             )
-        ids = [ann["question_id"] for ann in anns]
-        return ids
+        return [ann["question_id"] for ann in anns]
 
     def getImgIds(self, quesIds=[], quesTypes=[], ansTypes=[]):
         """
@@ -121,10 +124,8 @@ class VQA:
         if len(quesIds) == len(quesTypes) == len(ansTypes) == 0:
             anns = self.dataset["annotations"]
         else:
-            if not len(quesIds) == 0:
-                anns = sum(
-                    [self.qa[quesId] for quesId in quesIds if quesId in self.qa], []
-                )
+            if len(quesIds) != 0:
+                anns = sum((self.qa[quesId] for quesId in quesIds if quesId in self.qa), [])
             else:
                 anns = self.dataset["annotations"]
             anns = (
@@ -137,8 +138,7 @@ class VQA:
                 if len(ansTypes) == 0
                 else [ann for ann in anns if ann["answer_type"] in ansTypes]
             )
-        ids = [ann["image_id"] for ann in anns]
-        return ids
+        return [ann["image_id"] for ann in anns]
 
     def loadQA(self, ids=[]):
         """
@@ -161,7 +161,7 @@ class VQA:
             return 0
         for ann in anns:
             quesId = ann["question_id"]
-            print("Question: %s" % (self.qqa[quesId]["question"]))
+            print(f'Question: {self.qqa[quesId]["question"]}')
             for ans in ann["answers"]:
                 print("Answer %d: %s" % (ans["answer_id"], ans["answer"]))
 
@@ -217,7 +217,7 @@ class VQAEval:
         self.evalAnsType = {}
         self.vqa = vqa
         self.vqaRes = vqaRes
-        if not vqa is None and not vqaRes is None:
+        if vqa is not None and vqaRes is not None:
             self.params = {"question_id": vqaRes.getQuesIds()}
         self.contractions = {
             "aint": "ain't",
@@ -384,8 +384,8 @@ class VQAEval:
         ]
 
     def evaluate(self, quesIds=None):
-        if quesIds == None:
-            quesIds = [quesId for quesId in self.params["question_id"]]
+        if quesIds is None:
+            quesIds = list(self.params["question_id"])
         gts = {}
         res = {}
         for quesId in quesIds:
@@ -449,8 +449,10 @@ class VQAEval:
     def processPunctuation(self, inText):
         outText = inText
         for p in self.punct:
-            if (p + " " in inText or " " + p in inText) or (
-                re.search(self.commaStrip, inText) != None
+            if (
+                f"{p} " in inText
+                or f" {p}" in inText
+                or re.search(self.commaStrip, inText) != None
             ):
                 outText = outText.replace(p, "")
             else:
@@ -465,13 +467,10 @@ class VQAEval:
             word = self.manualMap.setdefault(word, word)
             if word not in self.articles:
                 outText.append(word)
-            else:
-                pass
         for wordId, word in enumerate(outText):
             if word in self.contractions:
                 outText[wordId] = self.contractions[word]
-        outText = " ".join(outText)
-        return outText
+        return " ".join(outText)
 
     def setAccuracy(self, accQA, accQuesType, accAnsType):
         self.accuracy["overall"] = round(100 * float(sum(accQA)) / len(accQA), self.n)

@@ -15,10 +15,7 @@ def custom_collate_fn(batch):
     """
     Collate function for DataLoader that collates a list of dicts into a dict of lists.
     """
-    collated_batch = {}
-    for key in batch[0].keys():
-        collated_batch[key] = [item[key] for item in batch]
-    return collated_batch
+    return {key: [item[key] for item in batch] for key in batch[0].keys()}
 
 
 def compute_effective_num_shots(num_shots, model_type):
@@ -53,13 +50,12 @@ def prepare_eval_samples(test_dataset, num_samples, batch_size):
     random_indices = np.random.choice(len(test_dataset), num_samples, replace=False)
     dataset = torch.utils.data.Subset(test_dataset, random_indices)
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
-    loader = torch.utils.data.DataLoader(
+    return torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
         sampler=sampler,
         collate_fn=custom_collate_fn,
     )
-    return loader
 
 
 def get_indices_of_unique(x):
@@ -117,7 +113,7 @@ def get_cast_dtype(precision: str):
 def get_autocast(precision):
     if precision == "amp":
         return torch.cuda.amp.autocast
-    elif precision == "amp_bfloat16" or precision == "amp_bf16":
+    elif precision in ["amp_bfloat16", "amp_bf16"]:
         # amp_bfloat16 is more stable than amp float16 for clip training
         return lambda: torch.cuda.amp.autocast(dtype=torch.bfloat16)
     else:
